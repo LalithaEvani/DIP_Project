@@ -1,8 +1,34 @@
-# DIP_Project
+# DIP Project: Handwritten Line and Word Recognition
 
-#### Dataset 
-* The dataset is acquired from IAM handwritten Forms Dataset. It is downloaded from kaggle [https://www.kaggle.com/datasets/naderabdalghani/iam-handwritten-forms-dataset].
-* The IAM handwritten forms dataset is created by more than 600 writers.
-* We have taken that dataset, selected a subset of the dataset each image or paragraph pertaining to one unique writer to give the dataset its variability of writers. It contains different writing styles, cursive, non-cursive, with different line gaps and gaps between words. Hence providing variablity in the datset and making the segmentation approach and the overall pipeline more robust.
-* The original dataset contains 1539 images and we have selected 30 of the images for out project.
-* Each image contains 2 modalities, prited text and handwritten text. The handwritten paragraph text is cropped from the main image to get the desired image for our project. This is done for all the 30 images to form our handwritten dataset. 
+This project implements a pipeline for handwritten text recognition, consisting of line segmentation, word segmentation, and word recognition. The system is built using Python and applied to cropped images from the IAM Handwritten Forms dataset.
+
+---
+
+## Dataset
+The project uses 32 cropped images from the [IAM Handwritten Forms Dataset](https://www.kaggle.com/datasets/naderabdalghani/iam-handwritten-forms-dataset).
+
+---
+
+## Project Structure
+The repository contains the following files and folders:
+
+- **`main_2.ipynb`**: Jupyter notebook for step-by-step visualization of the implemented algorithm.  
+- **`word_recognizer.ipynb`**: Jupyter notebook for implementing the word recognition module.
+- **`line_word_recognition_py_files/`**: Folder containing Python scripts for the three major steps of the pipeline:
+  - `line_seg_1.py`: Script for line segmentation.
+  - `word_seg_2_n.py`: Script for word segmentation.
+  - `check_img_type.py`: Script for checking image type (cursive text and non cursive text).
+  - `word_recog_3.py`: Script for word recognition.
+  - `main.py`: The main script that integrates all components.
+  
+---
+
+## Environment Setup
+To run this project, set up a Conda environment with the necessary dependencies.
+
+### Step 1: Create a Conda Environment
+Run the following commands in your terminal:
+```bash
+conda create -n dip_project python=3.9 -y
+conda activate dip_project
+conda install -c conda-forge opencv pillow numpy matplotlib transformers -y
