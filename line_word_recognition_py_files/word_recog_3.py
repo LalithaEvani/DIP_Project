@@ -1,7 +1,15 @@
 import os
 from PIL import Image
 import torch
-from transformers import VisionEncoderDecoderModel, TrOCRProcessor
+import warnings
+from transformers import VisionEncoderDecoderModel, TrOCRProcessor, logging
+
+#edit: added few lines to ignore warnings
+# Suppress all warnings
+warnings.filterwarnings("ignore")
+
+# Suppress logging from the transformers library
+logging.set_verbosity_error()  # Only show errors and hide warnings/info/debug messages
 
 class HandwrittenTextExtractor:
     def __init__(self, model_name="microsoft/trocr-base-handwritten", device=None):

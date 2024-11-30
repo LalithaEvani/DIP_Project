@@ -4,7 +4,7 @@ import numpy as np
 from skimage.morphology import skeletonize
 import os
 
-def crop_and_save_lines(text_image, lines_binary_image, output_folder,image_name):
+def crop_and_save_lines(text_image, lines_binary_image, output_folder):
   
     # Ensure the output folder exists
     os.makedirs(output_folder, exist_ok=True)
@@ -68,12 +68,131 @@ def crop_and_save_lines(text_image, lines_binary_image, output_folder,image_name
         # plt.show()
         # if i==2:
         #     break
-        line_image_path=output_folder+f'{image_name}_{i}.png'
+        # line_image_path=output_folder+f'{image_name}_{i}.png'
+        line_image_path = os.path.join(output_folder, f'{i}.png')
+        # line_image_path=output_folder+f'{i}.png'
         f = cv2.imwrite(line_image_path, cv2.bitwise_not(cropped_line_n))
-        print(f"{f}_Saved: {line_image_path}")
+        # print(f"{f}_Saved: {line_image_path}")
+
+# def find_endpoints(skeleton):
+
+#     kernel = np.array([[1, 1, 1],
+#                        [1, 10, 1],
+#                        [1, 1, 1]], dtype=np.uint8)
+    
+#     # Convolution to find neighbors of each pixel
+#     neighbors = cv2.filter2D(skeleton.astype(np.uint8), -1, kernel)
+    
+#     # Identify endpoints (pixels with exactly one neighbor)
+#     endpoints = np.where((neighbors == 11) & (skeleton == 1))
+    
+#     # Convert to list of (x, y) coordinates
+#     endpoints_n = list(zip(endpoints[1], endpoints[0]))
+#     # print('Before filtering:', endpoints_n)
+    
+#     # Filter endpoints based on their x-coordinate
+#     endpoints_filtered = [endpoint for endpoint in endpoints_n if endpoint[0] > (skeleton.shape[0] / 10)]
+    
+#     # Determine the direction of each endpoint
+#     endpoints_with_direction = []
+#     for endpoint in endpoints_filtered:
+#         x, y = endpoint
+        
+#         # Check 8-connected neighbors
+#         neighbor_offsets = [(-1, -1), (-1, 0), (-1, 1),
+#                             (0, -1),         (0, 1),
+#                             (1, -1), (1, 0), (1, 1)]
+#         neighbor_offsets=1*neighbor_offsets
+#         neighbors = []
+#         for dx, dy in neighbor_offsets:
+#             nx, ny = x + dx, y + dy
+#             if 0 <= ny < skeleton.shape[0] and 0 <= nx < skeleton.shape[1] and skeleton[ny, nx] == 1:
+#                 neighbors.append((nx, ny))
+        
+#         # Determine the direction based on the position of the neighbor
+#         if neighbors:
+#             # print(neighbors)
+#             # Calculate the vector between the endpoint and the neighbor
+#             neighbor = neighbors[0]  # Take the first neighbor (assumes a single path)
+#             dx = x-neighbor[0] 
+#             dy = y-neighbor[1]
+            
+#             # Determine direction
+#             if dx<0:  # Horizontal component dominates
+#                 direction = 0 #'right'
+#             else:  # Vertical component dominates (for future modifications if needed)
+#                 direction = 1 #'left'
+#         else:
+#             # print('No neighbours')
+#             direction = 0 #'undefined'  # Fallback if no valid neighbors are found
+        
+#         endpoints_with_direction.append((x, y, direction))
+    
+#     # print('After filtering with direction:', endpoints_with_direction)
+    
+#     # Calculate number of removed lines
+#     n_lines = len(endpoints_n) - len(endpoints_filtered)
+    
+#     return endpoints_with_direction, n_lines
+
+
+# def extend_horizontally(image, x, y, direction, max_length=50):
+#     """
+#     Extend the line horizontally from (x, y) in the given direction.
+#     """
+#     for i in range(1, max_length + 1):
+#         new_x = x + i * direction  # Extend horizontally
+#         if new_x < 0 or new_x >= image.shape[1]:
+#             break  # Stop if reaching the boundary
+#         if (y+1)<image.shape[0] and (new_x+1)<image.shape[1]:
+#             if image[y+1,new_x+1]!=0 or image[y,new_x+1]!=0 or image[y-1,new_x+1]!=0:
+#                 if image[y+1,new_x+1]!=0:
+#                     y= y-1
+#                 if image[y,new_x+1]!=0:
+#                     y= y-2
+#                 if image[y-1,new_x+1]!=0:
+#                     y= y+1
+
+#             else:
+#                 image[y, new_x] = 1  # Set pixel value to white
+
+
+#     return image
+
+# def connect_lines(image, endpoints,n_lines, max_distance):
+#     """
+#     Connect nearby endpoints or extend lines horizontally if no match is found.
+#     """
+#     v_threshold = image.shape[0]/(n_lines*(1.2))
+#     image_n = image.copy()
+#     used = set()  # Track used endpoints
+#     for i, (x1, y1,direction) in enumerate(endpoints):
+#         if i in used:
+#             continue
+#         for j, (x2, y2,d) in enumerate(endpoints):
+#             if i != j and j not in used:
+#                 distance = np.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
+#                 # print('yes',abs(y1 - y2),distance)
+
+#                 if distance < max_distance and abs(y1 - y2) < v_threshold and d==0 and direction==1:  # Allow only horizontal-ish connecti
+#                     # print('yes',abs(y1 - y2),distance)
+#                     cv2.line(image_n, (x1, y1), (x2, y2), 1, 1)
+#                     used.add(i)
+#                     used.add(j)
+#                     break
+#         else:
+#             # If no match, extend the line horizontally
+#             if direction==1:
+#             # direction = 0 if x1 < image_n.shape[1] // 2 else 1  # Left or right
+#                 # print(x1,y1,image.shape[1]-x1)
+#                 image_n = extend_horizontally(image_n, x1, y1, direction,max_length= image.shape[1]-x1)
+#     return image_n
+
+
+
 
 def find_endpoints(skeleton):
-
+ 
     kernel = np.array([[1, 1, 1],
                        [1, 10, 1],
                        [1, 1, 1]], dtype=np.uint8)
@@ -89,7 +208,8 @@ def find_endpoints(skeleton):
     # print('Before filtering:', endpoints_n)
     
     # Filter endpoints based on their x-coordinate
-    endpoints_filtered = [endpoint for endpoint in endpoints_n if endpoint[0] > (skeleton.shape[0] / 10)]
+    endpoints_filtered_n = [endpoint for endpoint in endpoints_n if endpoint[0] > (skeleton.shape[0] / 10)] #edited
+    endpoints_filtered = endpoints_n
     
     # Determine the direction of each endpoint
     endpoints_with_direction = []
@@ -117,7 +237,7 @@ def find_endpoints(skeleton):
             
             # Determine direction
             if dx<0:  # Horizontal component dominates
-                direction = 0 #'right'
+                direction = -1 #'right'
             else:  # Vertical component dominates (for future modifications if needed)
                 direction = 1 #'left'
         else:
@@ -129,7 +249,7 @@ def find_endpoints(skeleton):
     # print('After filtering with direction:', endpoints_with_direction)
     
     # Calculate number of removed lines
-    n_lines = len(endpoints_n) - len(endpoints_filtered)
+    n_lines = len(endpoints_n) - len(endpoints_filtered_n)
     
     return endpoints_with_direction, n_lines
 
@@ -142,19 +262,37 @@ def extend_horizontally(image, x, y, direction, max_length=50):
         new_x = x + i * direction  # Extend horizontally
         if new_x < 0 or new_x >= image.shape[1]:
             break  # Stop if reaching the boundary
-        if (y+1)<image.shape[0] and (new_x+1)<image.shape[1]:
-            if image[y+1,new_x+1]!=0 or image[y,new_x+1]!=0 or image[y-1,new_x+1]!=0:
-                if image[y+1,new_x+1]!=0:
-                    y= y-1
-                if image[y,new_x+1]!=0:
-                    y= y-2
-                if image[y-1,new_x+1]!=0:
-                    y= y+1
 
-            else:
-                image[y, new_x] = 1  # Set pixel value to white
+        if direction!=-1:
+            if (y-1)>0 and (y+1)<image.shape[0] and (new_x+1)<image.shape[1]:
+                if image[y+1,new_x+1]!=0 or image[y,new_x+1]!=0 or image[y-1,new_x+1]!=0:
+                    if image[y+1,new_x+1]!=0:
+                        y= y-1
+                    if image[y,new_x+1]!=0:
+                        y= y-2
+                    if image[y-1,new_x+1]!=0:
+                        y= y+1
+                    # print("in -1")
 
+                    # image[y, new_x] = 1 
 
+                else:
+                    image[y, new_x] = 1  # Set pixel value to white
+
+        else:
+            if (y-1)>0 and (y+1)<image.shape[0] and (new_x-1)>0:
+                if image[y+1,new_x-1]!=0 or image[y,new_x-1]!=0 or image[y-1,new_x-1]!=0:
+                    if image[y+1,new_x-1]!=0:
+                        y= y-1
+                    if image[y,new_x-1]!=0:
+                        y= y-2
+                    if image[y-1,new_x-1]!=0:
+                        y= y+1
+                    # print("in -1")
+                    # image[y, new_x] = 1 
+                else:
+                    image[y, new_x] = 1  # Set pixel value to white
+                    # print("yes -1d")
     return image
 
 def connect_lines(image, endpoints,n_lines, max_distance):
@@ -172,8 +310,8 @@ def connect_lines(image, endpoints,n_lines, max_distance):
                 distance = np.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
                 # print('yes',abs(y1 - y2),distance)
 
-                if distance < max_distance and abs(y1 - y2) < v_threshold and d==0 and direction==1:  # Allow only horizontal-ish connecti
-                    # print('yes',abs(y1 - y2),distance)
+                if distance < max_distance and abs(y1 - y2) < v_threshold and d==-1 and direction==1:  # Allow only horizontal-ish connecti
+                    print('yes',abs(y1 - y2),distance)
                     cv2.line(image_n, (x1, y1), (x2, y2), 1, 1)
                     used.add(i)
                     used.add(j)
@@ -184,7 +322,12 @@ def connect_lines(image, endpoints,n_lines, max_distance):
             # direction = 0 if x1 < image_n.shape[1] // 2 else 1  # Left or right
                 # print(x1,y1,image.shape[1]-x1)
                 image_n = extend_horizontally(image_n, x1, y1, direction,max_length= image.shape[1]-x1)
+            if direction==-1 and x1<image_n.shape[1]/5:
+                image_n = extend_horizontally(image_n, x1, y1, direction,max_length= x1-1)
+
     return image_n
+
+
 
 def skeletoniz_n(img):
     skel = np.zeros_like(img)
@@ -337,7 +480,7 @@ def PPA_Algo_line(image_path, output_folder, image_name, vartical_gap_threshold 
     image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
     _, binary_image = cv2.threshold(image, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
     completed_image_c = completed_image.copy()
-    crop_and_save_lines(binary_image, completed_image_c, output_folder,image_name)
+    crop_and_save_lines(binary_image, completed_image_c, output_folder)
 
     return painted_binary_image,filled_image_n, filled_image_n_n, filtered_image,completed_image,binary_image+255*completed_image
 
